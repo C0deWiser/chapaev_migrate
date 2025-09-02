@@ -3,12 +3,11 @@
 namespace App\Migrations;
 
 use App\Enumerations\Category;
-use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class MigrateFilmStudios extends Migration
+class MigrateFilmArticles extends Migration
 {
     public function table(): string
     {
@@ -18,7 +17,7 @@ class MigrateFilmStudios extends Migration
     public function total(): int
     {
         return DB::connection('old')
-            ->table('film_studios_films')
+            ->table('article_films')
             ->select(DB::raw('count(distinct film_id)'))
             ->where($this->keyName(), '>', $this->cursor->get())
             ->first()
@@ -28,12 +27,11 @@ class MigrateFilmStudios extends Migration
     public function query(): Builder
     {
         return DB::connection('old')
-            ->table('film_studios_films')
-            ->join('film_studios', 'film_studios.id', '=', 'film_studios_films.film_studio_id')
+            ->table('article_films')
             ->groupBy('film_id')
             ->select([
                 'film_id',
-                DB::raw("string_agg(film_studios.title::text, ', ') as studios")
+                DB::raw("string_agg(article_id::text, ';') as related")
             ]);
     }
 
@@ -46,14 +44,21 @@ class MigrateFilmStudios extends Migration
     {
         return [
             new MigrateFilms(),
+            new MigrateArticles(),
         ];
     }
 
+    /**
+     * В метакее фильма перечисляем все статьи про него.
+     */
     public function migrate(stdClass $row): bool
     {
-        return Field::cinematic('Cтудия')->putValue(
-            $this->joomla->migrated(Category::films, $row->film_id),
-            $row->studios
-        );
+        $metakeys = $this->joomla->metakeys(Category::articles, explode(';', $row->related));
+
+        return $this->joomla
+            ->migrated(Category::films, $row->film_id)
+            ->update([
+                'metakey' => $this->joomla->json_encode($metakeys) ?? ''
+            ]);
     }
 }

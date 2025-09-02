@@ -2,26 +2,27 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\Joomla;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigratePeopleRewards extends Migration
 {
-    use Joomla;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->cursor->disable();
-    }
-
     public function table(): string
     {
         return 'nn6g0_contact_details';
+    }
+
+    public function total(): int
+    {
+        return DB::connection('old')
+            ->table('person_rewards')
+            ->select(DB::raw('count(distinct person_id)'))
+            ->where($this->keyName(), '>', $this->cursor->get())
+            ->first()
+            ->count;
     }
 
     public function query(): Builder
@@ -31,7 +32,7 @@ class MigratePeopleRewards extends Migration
             ->join('rewards', 'rewards.id', '=', 'person_rewards.reward_id')
             ->groupBy('person_id')
             ->select([
-                'person_rewards.person_id',
+                'person_id',
                 DB::raw("string_agg(person_rewards.year::text, ';') as years"),
                 DB::raw("string_agg(rewards.title, ';') as rewards"),
             ]);
@@ -51,13 +52,6 @@ class MigratePeopleRewards extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $field = $this->registerField(
-            'Награды',
-            'com_contact.contact',
-            0,
-            'text'
-        );
-
         $years = explode(';', $row->years);
         $rewards = explode(';', $row->rewards);
 
@@ -71,12 +65,9 @@ class MigratePeopleRewards extends Migration
             }
         }
 
-        $this->putFieldValue(
-            $field,
-            $this->migrated('nn6g0_contact_details', "person-$row->person_id"),
-            json_encode($data, JSON_UNESCAPED_UNICODE)
+        return Field::personal('Награды')->putValue(
+            $this->joomla->migrated(Category::faces, $row->person_id),
+            $this->joomla->json_encode($data)
         );
-
-        return true;
     }
 }

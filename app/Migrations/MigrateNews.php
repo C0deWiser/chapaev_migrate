@@ -2,16 +2,13 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\ContentTrait;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigrateNews extends Migration
 {
-    use ContentTrait;
-
     public function table(): string
     {
         return 'nn6g0_content';
@@ -34,18 +31,18 @@ class MigrateNews extends Migration
 
     public function before(): void
     {
-        $this->addMigrationColumn();
+        $this->joomla->addMigrationColumn($this->table());
     }
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = "post-$row->id";
+        $migration_id = Category::news->migration_id($row->id);
 
-        $slug = $this->makeSlug($row->title,
+        $slug = $this->joomla->makeSlug($row->title,
             fn(string $alias) => DB::connection('new')
                 ->table('nn6g0_content')
                 ->where('alias', $alias)
-                ->where('catid', self::NewsContent)
+                ->where('catid', Category::news)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -54,10 +51,10 @@ class MigrateNews extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $row->subtitle ? "<p>{$this->relink($row->subtitle)}</p>" : '',
-            'fulltext'         => $this->relink($row->body),
+            'introtext'        => $row->subtitle ? "<p>{$this->joomla->relink($row->subtitle)}</p>" : '',
+            'fulltext'         => $this->joomla->relink($row->body),
             'state'            => $row->active,
-            'catid'            => self::NewsContent,
+            'catid'            => Category::news,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -67,15 +64,15 @@ class MigrateNews extends Migration
             'checked_out_time' => null,
             'publish_up'       => $row->date_from ?? $row->created_at,
             'publish_down'     => null,
-            'images'           => json_encode($this->images($row)),
-            'urls'             => json_encode($this->urls($row)),
-            'attribs'          => json_encode($this->attribs($row)),
+            'images'           => $this->joomla->json_encode($this->joomla->images($row)),
+            'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
+            'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,
             'ordering'         => 0,
             'metadesc'         => '',
             'access'           => 1,
             'hits'             => 0,
-            'metadata'         => json_encode($this->metadata($row)),
+            'metadata'         => $this->joomla->json_encode($this->joomla->metadata($row)),
             'featured'         => 0,
             'language'         => '*',
             'note'             => '',

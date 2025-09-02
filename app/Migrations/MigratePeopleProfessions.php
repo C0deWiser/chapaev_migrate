@@ -2,26 +2,27 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\Joomla;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigratePeopleProfessions extends Migration
 {
-    use Joomla;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->cursor->disable();
-    }
-
     public function table(): string
     {
         return 'nn6g0_contact_details';
+    }
+
+    public function total(): int
+    {
+        return DB::connection('old')
+            ->table('people_professions')
+            ->select(DB::raw('count(distinct person_id)'))
+            ->where($this->keyName(), '>', $this->cursor->get())
+            ->first()
+            ->count;
     }
 
     public function query(): Builder
@@ -31,7 +32,7 @@ class MigratePeopleProfessions extends Migration
             ->join('professions', 'professions.id', '=', 'people_professions.profession_id')
             ->groupBy('person_id')
             ->select([
-                'people_professions.person_id',
+                'person_id',
                 DB::raw("string_agg(professions.title, ', ') as professions")
             ]);
     }
@@ -50,19 +51,9 @@ class MigratePeopleProfessions extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $field = $this->registerField(
-            'Профессия',
-            'com_contact.contact',
-            0,
-            'text'
-        );
-
-        $this->putFieldValue(
-            $field,
-            $this->migrated('nn6g0_contact_details', "person-$row->person_id"),
+        return Field::personal('Профессия')->putValue(
+            $this->joomla->migrated(Category::faces, $row->person_id),
             str($row->professions)->lower()->toString()
         );
-
-        return true;
     }
 }

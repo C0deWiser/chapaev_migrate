@@ -2,26 +2,27 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\Joomla;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigrateFilmGenres extends Migration
 {
-    use Joomla;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->cursor->disable();
-    }
-
     public function table(): string
     {
         return 'nn6g0_content';
+    }
+
+    public function total(): int
+    {
+        return DB::connection('old')
+            ->table('film_genres_films')
+            ->select(DB::raw('count(distinct film_id)'))
+            ->where($this->keyName(), '>', $this->cursor->get())
+            ->first()
+            ->count;
     }
 
     public function query(): Builder
@@ -50,19 +51,9 @@ class MigrateFilmGenres extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $field = $this->registerField(
-            'Жанр',
-            'com_content.article',
-            1,
-            'text'
-        );
-
-        $this->putFieldValue(
-            $field,
-            $this->migrated('nn6g0_content', "film-$row->film_id"),
+        return Field::cinematic('Жанр')->putValue(
+            $this->joomla->migrated(Category::films, $row->film_id),
             $row->genres
         );
-
-        return true;
     }
 }

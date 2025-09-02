@@ -2,26 +2,27 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\Joomla;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigrateFilmDirectors extends Migration
 {
-    use Joomla;
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->cursor->disable();
-    }
-
     public function table(): string
     {
         return 'nn6g0_content';
+    }
+
+    public function total(): int
+    {
+        return DB::connection('old')
+            ->table('film_directors')
+            ->select(DB::raw('count(distinct film_id)'))
+            ->where($this->keyName(), '>', $this->cursor->get())
+            ->first()
+            ->count;
     }
 
     public function query(): Builder
@@ -31,7 +32,7 @@ class MigrateFilmDirectors extends Migration
             ->groupBy('film_id')
             ->select([
                 'film_id',
-                DB::raw("string_agg(person_id::text, ';') as people")
+                DB::raw("string_agg(person_id::text, ';') as related")
             ]);
     }
 
@@ -50,27 +51,11 @@ class MigrateFilmDirectors extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $field = $this->registerField(
-            'Режиссёр',
-            'com_content.article',
-            2,
-            'text'
-        );
+        $metakeys = $this->joomla->metakeys(Category::faces, explode(';', $row->related));
 
-        $people = array_map(
-            fn($id) => $this
-                ->migrated('nn6g0_contact_details', "person-$id")
-                ->sole()
-                ->id,
-            explode(';', $row->people)
+        return Field::crew('Режиссёр')->putValue(
+            $this->joomla->migrated(Category::films, $row->film_id),
+            $this->joomla->json_encode($metakeys)
         );
-
-        $this->putFieldValue(
-            $field,
-            $this->migrated('nn6g0_content', "film-$row->film_id"),
-            implode(', ', $people)
-        );
-
-        return true;
     }
 }

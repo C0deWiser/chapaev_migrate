@@ -2,16 +2,14 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\ContentTrait;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigrateFilms extends Migration
 {
-    use ContentTrait;
-
     public function table(): string
     {
         return 'nn6g0_content';
@@ -34,18 +32,18 @@ class MigrateFilms extends Migration
 
     public function before(): void
     {
-        $this->addMigrationColumn();
+        $this->joomla->addMigrationColumn($this->table());
     }
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = "film-$row->id";
+        $migration_id = Category::films->migration_id($row->id);
 
-        $slug = $this->makeSlug($row->title,
+        $slug = $this->joomla->makeSlug($row->title,
             fn(string $alias) => DB::connection('new')
                 ->table('nn6g0_content')
                 ->where('alias', $alias)
-                ->where('catid', self::FilmContent)
+                ->where('catid', Category::films)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -54,10 +52,10 @@ class MigrateFilms extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $this->relink($row->preview_text ?? ''),
-            'fulltext'         => $this->relink($row->detail_text ?? ''),
+            'introtext'        => $this->joomla->relink($row->preview_text ?? ''),
+            'fulltext'         => $this->joomla->relink($row->detail_text ?? ''),
             'state'            => $row->active,
-            'catid'            => self::FilmContent,
+            'catid'            => Category::films,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -67,22 +65,36 @@ class MigrateFilms extends Migration
             'checked_out_time' => null,
             'publish_up'       => $row->date_from ?? $row->created_at,
             'publish_down'     => null,
-            'images'           => json_encode($this->images($row)),
-            'urls'             => json_encode($this->urls($row)),
-            'attribs'          => json_encode($this->attribs($row)),
+            'images'           => $this->joomla->json_encode($this->joomla->images($row)),
+            'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
+            'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,
             'ordering'         => $row->sort ?? 0,
             'metadesc'         => '',
             'access'           => 1,
             'hits'             => 0,
-            'metadata'         => json_encode($this->metadata($row)),
+            'metadata'         => $this->joomla->json_encode($this->joomla->metadata($row)),
             'featured'         => 0,
             'language'         => '*',
             'note'             => '',
         ];
 
-        return DB::connection('new')
+        $response = DB::connection('new')
             ->table('nn6g0_content')
             ->updateOrInsert(['migration' => $migration_id], $data);
+
+        $this->fields(
+            $this->joomla->migrated(Category::films, $row->id)->sole(),
+            $row
+        );
+
+        return $response;
+    }
+
+    protected function fields(stdClass $new, stdClass $old): void
+    {
+        Field::cinematic('Год')->putValue($new, $old->year);
+        Field::cinematic('Премьера', type: 'calendar')->putValue($new, $this->joomla->date_parse($old->release_date));
+        Field::cinematic('Продолжительность')->putValue($new, $old->duration);
     }
 }

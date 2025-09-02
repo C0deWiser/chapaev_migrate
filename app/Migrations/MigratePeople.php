@@ -2,16 +2,14 @@
 
 namespace App\Migrations;
 
-use App\Migrations\Traits\ContactTrait;
-use Fcz\Migrator\Migration;
+use App\Enumerations\Category;
+use App\Joomla\Field;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 class MigratePeople extends Migration
 {
-    use ContactTrait;
-
     public function table(): string
     {
         return 'nn6g0_contact_details';
@@ -35,14 +33,16 @@ class MigratePeople extends Migration
 
     public function before(): void
     {
-        $this->addMigrationColumn();
+        $this->joomla->addMigrationColumn($this->table());
     }
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = "person-$row->id";
+        $category = $row->is_author ? Category::authors : Category::faces;
 
-        $slug = $this->makeSlug([$row->name, $row->second_name, $row->last_name],
+        $migration_id = $category->migration_id($row->id);
+
+        $slug = $this->joomla->makeSlug([$row->name, $row->second_name, $row->last_name],
             fn(string $alias) => DB::connection('new')
                 ->table('nn6g0_contact_details')
                 ->where('alias', $alias)
@@ -61,7 +61,7 @@ class MigratePeople extends Migration
             'postcode'         => '',
             'telephone'        => '',
             'fax'              => '',
-            'misc'             => $this->relink($row->detail_text ?? $row->preview_text ?? ''),
+            'misc'             => $this->joomla->relink($row->detail_text ?? $row->preview_text ?? ''),
             'image'            => '',
             'email_to'         => '',
             'default_con'      => 0,
@@ -69,9 +69,9 @@ class MigratePeople extends Migration
             'checked_out'      => null,
             'checked_out_time' => null,
             'ordering'         => $row->sort ?? 0,
-            'params'           => json_encode($this->params($row)),
+            'params'           => $this->joomla->json_encode($this->joomla->params($row)),
             'user_id'          => 0,
-            'catid'            => $row->is_author ? self::AuthorContact : self::PeopleContact,
+            'catid'            => $category,
             'access'           => 1,
             'mobile'           => '',
             'webpage'          => '',
@@ -85,7 +85,7 @@ class MigratePeople extends Migration
             'modified'         => $row->updated_at,
             'modified_by'      => 0,
             'metadesc'         => '',
-            'metadata'         => json_encode($this->metadata($row)),
+            'metadata'         => $this->joomla->json_encode($this->joomla->metadata($row)),
             'featured'         => 0,
             'publish_up'       => $row->created_at,
             'publish_down'     => null,
@@ -98,7 +98,7 @@ class MigratePeople extends Migration
             ->updateOrInsert(['migration' => $migration_id], $data);
 
         $this->fields(
-            $this->migrated('nn6g0_contact_details', $migration_id)->sole(),
+            $this->joomla->migrated($category, $row->id)->sole(),
             $row
         );
 
@@ -107,36 +107,9 @@ class MigratePeople extends Migration
 
     protected function fields(stdClass $new, stdClass $old): void
     {
-        $birth_date = $this->registerField(
-            'Дата рождения',
-            'com_contact.contact',
-            0,
-            'calendar'
-        );
-        $this->putFieldValue($birth_date, $new, $old->birth_date);
-
-        $death_date = $this->registerField(
-            'Дата смерти',
-            'com_contact.contact',
-            0,
-            'calendar'
-        );
-        $this->putFieldValue($death_date, $new, $old->death_date);
-
-        $birth_place = $this->registerField(
-            'Место рождения',
-            'com_contact.contact',
-            0,
-            'text'
-        );
-        $this->putFieldValue($birth_place, $new, $old->birth_place);
-
-        $death_place = $this->registerField(
-            'Место смерти',
-            'com_contact.contact',
-            0,
-            'text'
-        );
-        $this->putFieldValue($death_place, $new, $old->death_place);
+        Field::personal('Дата рождения', type: 'calendar')->putValue($new, $old->birth_date);
+        Field::personal('Дата смерти', type: 'calendar')->putValue($new, $old->death_date);
+        Field::personal('Место рождения')->putValue($new, $old->birth_place);
+        Field::personal('Место смерти')->putValue($new, $old->death_place);
     }
 }
