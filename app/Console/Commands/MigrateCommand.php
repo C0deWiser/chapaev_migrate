@@ -15,10 +15,14 @@ use App\Migrations\MigrateFilmPeople;
 use App\Migrations\MigrateFilmRoles;
 use App\Migrations\MigrateFilms;
 use App\Migrations\MigrateFilmStudios;
+use App\Migrations\MigrateGalleries;
 use App\Migrations\MigrateNews;
 use App\Migrations\MigratePeople;
 use App\Migrations\MigratePeopleProfessions;
 use App\Migrations\MigratePeopleRewards;
+use App\Migrations\MigratePhotos;
+use App\Migrations\MigrateRelinkContacts;
+use App\Migrations\MigrateRelinkContents;
 
 class MigrateCommand extends \Fcz\Migrator\MigrateCommand
 {
@@ -37,12 +41,15 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'People'   => fn() => new MigratePeople(),
             'Articles' => fn() => new MigrateArticles(),
 
+            'Article-Relink' => fn() => new MigrateRelinkContents(),
+            'Person-Relink'  => fn() => new MigrateRelinkContacts(),
+
             'Article-Films'   => fn() => new MigrateArticleFilms(),
             'Article-People'  => fn() => new MigrateArticlePeople(),
             'Article-Authors' => fn() => new MigrateArticleAuthors(),
 
-            'People-Rewards'     => fn() => new MigratePeopleRewards(),
-            'People-Professions' => fn() => new MigratePeopleProfessions(),
+            'Person-Rewards'     => fn() => new MigratePeopleRewards(),
+            'Person-Professions' => fn() => new MigratePeopleProfessions(),
 
             'Film-Kinds'     => fn() => new MigrateFilmKinds(),
             'Film-Roles'     => fn() => new MigrateFilmRoles(),
@@ -52,6 +59,9 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Film-Studios'   => fn() => new MigrateFilmStudios(),
             'Film-Articles'  => fn() => new MigrateFilmArticles(),
             'Film-Directors' => fn() => new MigrateFilmDirectors(),
+
+            'Photos'    => fn() => new MigratePhotos(),
+            'Galleries' => fn() => new MigrateGalleries(),
         ];
     }
 }

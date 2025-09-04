@@ -30,6 +30,14 @@ return [
 
     'disks' => [
 
+        'joomla' => [
+            'driver' => 'local',
+            'root' => env('JOOMLA_IMAGES_PATH'),
+            'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

@@ -40,7 +40,7 @@ class MigrateNews extends Migration
 
         $slug = $this->joomla->makeSlug($row->title,
             fn(string $alias) => DB::connection('new')
-                ->table('nn6g0_content')
+                ->table($this->table())
                 ->where('alias', $alias)
                 ->where('catid', Category::news)
                 ->whereNot('migration', $migration_id)
@@ -51,8 +51,8 @@ class MigrateNews extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $row->subtitle ? "<p>{$this->joomla->relink($row->subtitle)}</p>" : '',
-            'fulltext'         => $this->joomla->relink($row->body),
+            'introtext'        => $row->subtitle ? "<p>$row->subtitle</p>" : '',
+            'fulltext'         => $row->body,
             'state'            => $row->active,
             'catid'            => Category::news,
             'created'          => $row->created_at,
@@ -64,7 +64,11 @@ class MigrateNews extends Migration
             'checked_out_time' => null,
             'publish_up'       => $row->date_from ?? $row->created_at,
             'publish_down'     => null,
-            'images'           => $this->joomla->json_encode($this->joomla->images($row)),
+            'images'           => $this->joomla->json_encode($this->joomla->images($row, [
+                'image_intro' => $row->picture
+                    ? 'images/'.$this->joomla->downloadAs(Category::news, $row->id, $row->picture)
+                    : ''
+            ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
             'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,
@@ -79,7 +83,7 @@ class MigrateNews extends Migration
         ];
 
         return DB::connection('new')
-            ->table('nn6g0_content')
+            ->table($this->table())
             ->updateOrInsert(['migration' => $migration_id], $data);
     }
 }

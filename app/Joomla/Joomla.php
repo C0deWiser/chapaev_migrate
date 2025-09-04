@@ -5,9 +5,12 @@ namespace App\Joomla;
 use App\Enumerations\Category;
 use Closure;
 use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use stdClass;
 
 class Joomla
@@ -45,6 +48,20 @@ class Joomla
             ->where('migration', $category->migration_id($old_key));
     }
 
+    /** Not static!!! */
+    protected array $migrated_id = [];
+
+    public function migrated_id(Category $category, int $old_key): int
+    {
+        $key = $category->name.$old_key;
+
+        if (!isset($this->migrated_id[$key])) {
+            $this->migrated_id[$key] = $this->migrated($category, $old_key)->sole()->id;
+        }
+
+        return $this->migrated_id[$key];
+    }
+
     public function metadata(stdClass $row): array
     {
         return [
@@ -54,12 +71,53 @@ class Joomla
         ];
     }
 
-    /**
-     * @todo Заменить ссылки
-     */
     public function relink(string $text): string
     {
-        return $text;
+        return $this->replaceHref($this->replaceImgSrc($text));
+    }
+
+    protected function replaceImgSrc(string $text): string
+    {
+        preg_match_all('~src=[\'"](https://api.chapaev\.media/uploads/.+?)[\'"]~', $text, $matches);
+
+        //dump($matches[1]);
+        $replacements = [];
+
+        foreach ($matches[1] as $match) {
+            $replacements[] = '/images/'.$this->download($match);
+        }
+
+        //dump($replacements);
+
+        return str($text)->replace($matches[1], $replacements);
+    }
+
+    protected function replaceHref(string $text): string
+    {
+        preg_match_all('~href=[\'"]https://chapaev\.media/(\w+)/(\d+)[\'"]~', $text, $matches);
+
+        //dump($matches[0]);
+        $replacements = [];
+
+        foreach ($matches[0] as $i => $match) {
+            $cat = Category::tryFromName($matches[1][$i]);
+
+            if ($cat) {
+                $old_key = $matches[2][$i];
+                $row = $this->migrated($cat, $old_key)->first();
+                if ($row) {
+                    $replacements[] = 'href="/'.$cat->name.'/'.$row->alias.'"';
+                } else {
+                    $replacements[] = $match;
+                }
+            } else {
+                $replacements[] = $match;
+            }
+        }
+
+        //dump($replacements);
+
+        return str($text)->replace($matches[0], $replacements);
     }
 
     public function addMigrationColumn(string $table, string $column = 'migration'): void
@@ -92,9 +150,9 @@ class Joomla
         ];
     }
 
-    public function images(stdClass $row): array
+    public function images(stdClass $row, array $images = []): array
     {
-        return [
+        return $images + [
             "image_intro"            => "",
             "image_intro_alt"        => "",
             "float_intro"            => "",
@@ -214,5 +272,39 @@ class Joomla
         }
 
         return null;
+    }
+
+    /**
+     * Скачать файл, вставленный в текст в виде ссылки.
+     */
+    public function download(string $source): string
+    {
+        $target = str($source)->after('uploads/')->toString();
+
+        Storage::makeDirectory(dirname($target));
+
+        if (Storage::missing($target)) {
+            Http::sink(Storage::path($target))->get($source);
+        }
+
+        return $target;
+    }
+
+    /**
+     * Скачать файл, зарегистрированный в бд по всем правилам.
+     */
+    public function downloadAs(Category $category, int $old_key, string $filename): string
+    {
+        Storage::makeDirectory($category->targetDir());
+
+        $target = "{$category->targetDir()}/$filename";
+
+        if (Storage::missing($target)) {
+            Http::baseUrl('https://api.chapaev.media/storage/')
+                ->sink(Storage::path($target))
+                ->get("{$category->sourceDir()}/$old_key/$filename");
+        }
+
+        return $target;
     }
 }

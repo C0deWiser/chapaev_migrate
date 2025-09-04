@@ -133,8 +133,12 @@ class Field
     /**
      * Put field value into Joomla.
      */
-    public function putValue(Builder|stdClass|string|int $query, $value): bool
+    public function putValue(Builder|stdClass|string|int|null $query, $value): bool
     {
+        if (is_null($query)) {
+            return false;
+        }
+
         if ($query instanceof Builder) {
             try {
                 $query = $query->sole();

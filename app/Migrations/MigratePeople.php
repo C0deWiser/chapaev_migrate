@@ -44,7 +44,7 @@ class MigratePeople extends Migration
 
         $slug = $this->joomla->makeSlug([$row->name, $row->second_name, $row->last_name],
             fn(string $alias) => DB::connection('new')
-                ->table('nn6g0_contact_details')
+                ->table($this->table())
                 ->where('alias', $alias)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
@@ -61,8 +61,10 @@ class MigratePeople extends Migration
             'postcode'         => '',
             'telephone'        => '',
             'fax'              => '',
-            'misc'             => $this->joomla->relink($row->detail_text ?? $row->preview_text ?? ''),
-            'image'            => '',
+            'misc'             => $row->detail_text ?? $row->preview_text ?? '',
+            'image'            => $row->picture
+                ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
+                : '',
             'email_to'         => '',
             'default_con'      => 0,
             'published'        => $row->active,
@@ -94,7 +96,7 @@ class MigratePeople extends Migration
         ];
 
         $response = DB::connection('new')
-            ->table('nn6g0_contact_details')
+            ->table($this->table())
             ->updateOrInsert(['migration' => $migration_id], $data);
 
         $this->fields(

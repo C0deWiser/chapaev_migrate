@@ -17,19 +17,4 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
-
-    public function test_carbon_parse()
-    {
-        $string = '13 мая 1961';
-
-        $string = str($string)->replace([
-            'мая'
-        ], [
-            'may'
-        ])->toString();
-
-        $date = Carbon::parse($string);
-
-        dump($date);
-    }
 }
