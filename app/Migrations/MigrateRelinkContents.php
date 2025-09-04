@@ -18,7 +18,7 @@ class MigrateRelinkContents extends Migration
         return DB::connection('new')
             ->table($this->table())
             ->select(['id', 'introtext', 'fulltext'])
-            ->whereAny(['introtext', 'fulltext'], 'like', '%https://chapaev.media%');
+            ->whereAny(['introtext', 'fulltext'], 'like', '%chapaev.media%');
     }
 
     public function keyName(): string

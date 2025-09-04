@@ -18,7 +18,7 @@ class MigrateRelinkContacts extends Migration
         return DB::connection('new')
             ->table($this->table())
             ->select(['id', 'misc'])
-            ->where('misc', 'like', '%https://chapaev.media%');
+            ->where('misc', 'like', '%chapaev.media%');
     }
 
     public function keyName(): string
