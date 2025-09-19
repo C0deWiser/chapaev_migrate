@@ -53,12 +53,15 @@ class MigrateFilmArticles extends Migration
      */
     public function migrate(stdClass $row): bool
     {
-        $metakeys = $this->joomla->metakeys(Category::articles, explode(';', $row->related));
+        $builder = $this->joomla->migrated(Category::films, $row->film_id);
 
-        return $this->joomla
-            ->migrated(Category::films, $row->film_id)
-            ->update([
-                'metakey' => $this->joomla->json_encode($metakeys) ?? ''
+        $metakey = $this->joomla->merge_metakeys(
+            $builder->first(),
+            $this->joomla->metakeys(Category::articles, explode(';', $row->related))
+        );
+
+        return $builder->update([
+                'metakey' => $this->joomla->json_encode($metakey) ?? ''
             ]);
     }
 }
