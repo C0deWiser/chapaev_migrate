@@ -307,4 +307,25 @@ class Joomla
 
         return $target;
     }
+
+    public function merge_metakeys(?stdClass $row, array $append): array
+    {
+        if (!$row) {
+            return $append;
+        }
+
+        $metakey = $row->metakey
+            ? json_decode($row->metakey, true)
+            : null;
+
+        if (!is_array($metakey)) {
+            $metakey = [];
+        }
+
+        return array_values(
+            array_unique(
+                array_merge($metakey, $append)
+            )
+        );
+    }
 }

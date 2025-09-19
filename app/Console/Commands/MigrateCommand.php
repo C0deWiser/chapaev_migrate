@@ -18,6 +18,8 @@ use App\Migrations\MigrateFilmStudios;
 use App\Migrations\MigrateGalleries;
 use App\Migrations\MigrateNews;
 use App\Migrations\MigratePeople;
+use App\Migrations\MigratePeopleArticle;
+use App\Migrations\MigratePeopleFilm;
 use App\Migrations\MigratePeopleProfessions;
 use App\Migrations\MigratePeopleRewards;
 use App\Migrations\MigratePhotos;
@@ -48,6 +50,8 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Article-People'  => fn() => new MigrateArticlePeople(),
             'Article-Authors' => fn() => new MigrateArticleAuthors(),
 
+            'Person-Film'        => fn() => new MigratePeopleFilm(),
+            'Person-Article'     => fn() => new MigratePeopleArticle(),
             'Person-Rewards'     => fn() => new MigratePeopleRewards(),
             'Person-Professions' => fn() => new MigratePeopleProfessions(),
 
