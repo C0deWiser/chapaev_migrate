@@ -51,7 +51,7 @@ class MigrateArticles extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $row->subtitle ? "<p>$row->subtitle</p>" : '',
+            'introtext'        => $row->subtitle ?: '',
             'fulltext'         => $row->body,
             'state'            => $row->active,
             'catid'            => Category::articles,
@@ -65,8 +65,11 @@ class MigrateArticles extends Migration
             'publish_up'       => $row->created_at,
             'publish_down'     => null,
             'images'           => $this->joomla->json_encode(($this->joomla->images($row, [
-                'image_intro' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::articles, $row->id, $row->picture)
+                'image_intro' => $row->picture || $row->preview_picture
+                    ? 'images/'.$this->joomla->downloadAs(
+                        Category::articles, $row->id,
+                        $row->picture ?: $row->preview_picture
+                    )
                     : ''
             ]))),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),

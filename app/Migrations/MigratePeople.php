@@ -62,8 +62,10 @@ class MigratePeople extends Migration
             'telephone'        => '',
             'fax'              => '',
             'misc'             => $row->detail_text ?? $row->preview_text ?? '',
-            'image'            => $row->picture
-                ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
+            'image'            => $row->picture || $row->preview_picture
+                ? 'images/'.$this->joomla->downloadAs($category, $row->id,
+                    $row->picture ?: $row->preview_picture
+                )
                 : '',
             'email_to'         => '',
             'default_con'      => 0,

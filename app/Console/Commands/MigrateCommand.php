@@ -6,6 +6,7 @@ use App\Migrations\MigrateArticleAuthors;
 use App\Migrations\MigrateArticleFilms;
 use App\Migrations\MigrateArticlePeople;
 use App\Migrations\MigrateArticles;
+use App\Migrations\MigrateArticleTags;
 use App\Migrations\MigrateFilmArticles;
 use App\Migrations\MigrateFilmDirectors;
 use App\Migrations\MigrateFilmFormats;
@@ -25,6 +26,7 @@ use App\Migrations\MigratePeopleRewards;
 use App\Migrations\MigratePhotos;
 use App\Migrations\MigrateRelinkContacts;
 use App\Migrations\MigrateRelinkContents;
+use App\Migrations\MigrateTags;
 
 class MigrateCommand extends \Fcz\Migrator\MigrateCommand
 {
@@ -38,6 +40,7 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
     public function migrations(): array
     {
         return [
+            'Tags'     => fn() => new MigrateTags(),
             'News'     => fn() => new MigrateNews(),
             'Films'    => fn() => new MigrateFilms(),
             'People'   => fn() => new MigratePeople(),
@@ -46,6 +49,7 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Article-Relink' => fn() => new MigrateRelinkContents(),
             'Person-Relink'  => fn() => new MigrateRelinkContacts(),
 
+            'Article-Tags'    => fn() => new MigrateArticleTags(),
             'Article-Films'   => fn() => new MigrateArticleFilms(),
             'Article-People'  => fn() => new MigrateArticlePeople(),
             'Article-Authors' => fn() => new MigrateArticleAuthors(),

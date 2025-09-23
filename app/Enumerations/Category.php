@@ -15,6 +15,7 @@ enum Category: int
     // Not a joomla real categories
     case photo = 88888;
     case gallery = 99999;
+    case tag = 99998;
 
     public static function fromName(string $name): self
     {
@@ -41,6 +42,7 @@ enum Category: int
             self::authors => 'nn6g0_contact_details',
             self::photo   => 'nn6g0_phocagallery',
             self::gallery => 'nn6g0_phocagallery_categories',
+            self::tag     => 'nn6g0_tags',
             default       => 'nn6g0_content',
         };
     }
@@ -60,6 +62,7 @@ enum Category: int
             self::news     => "post-$old_key",
             self::photo    => "photo-$old_key",
             self::gallery  => "gallery-$old_key",
+            self::tag      => "tag-$old_key",
         };
     }
 
@@ -72,7 +75,8 @@ enum Category: int
             self::films    => 'film',
             self::news     => 'post',
             self::photo    => 'photo',
-            self::gallery  => throw new \Exception('To be implemented'),
+            self::gallery,
+            self::tag      => throw new \Exception('To be implemented'),
         };
     }
 
@@ -85,7 +89,8 @@ enum Category: int
             self::films    => 'films',
             self::news     => 'news',
             self::photo    => 'phocagallery',
-            self::gallery  => throw new \Exception('To be implemented'),
+            self::gallery,
+            self::tag      => throw new \Exception('To be implemented'),
         };
     }
 }

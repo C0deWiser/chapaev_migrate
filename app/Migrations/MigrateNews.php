@@ -51,7 +51,7 @@ class MigrateNews extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $row->subtitle ? "<p>$row->subtitle</p>" : '',
+            'introtext'        => $row->subtitle ?: '',
             'fulltext'         => $row->body,
             'state'            => $row->active,
             'catid'            => Category::news,
