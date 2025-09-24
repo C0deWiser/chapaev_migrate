@@ -27,6 +27,7 @@ use App\Migrations\MigratePhotos;
 use App\Migrations\MigrateRelinkContacts;
 use App\Migrations\MigrateRelinkContents;
 use App\Migrations\MigrateTags;
+use Illuminate\Support\Facades\DB;
 
 class MigrateCommand extends \Fcz\Migrator\MigrateCommand
 {
@@ -35,6 +36,15 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
         parent::__construct();
 
         $this->setLogger(logger());
+    }
+
+    public function handle(): void
+    {
+        parent::handle();
+
+        DB::connection('new')->unprepared(
+            file_get_contents(__DIR__.'/finally.sql')
+        );
     }
 
     public function migrations(): array
