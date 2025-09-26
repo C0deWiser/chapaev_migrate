@@ -5,14 +5,12 @@ namespace App\Migrations;
 use App\Enumerations\Category;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\MultipleRecordsFoundException;
-use Illuminate\Database\RecordNotFoundException;
 use Illuminate\Database\RecordsNotFoundException;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class MigrateArticleTags extends Migration
+class MigrateCourseTags extends Migration
 {
-
     public function table(): string
     {
         return 'nn6g0_contentitem_tag_map';
@@ -21,8 +19,8 @@ class MigrateArticleTags extends Migration
     public function total(): int
     {
         return DB::connection('old')
-            ->table('article_categories_articles')
-            ->select(DB::raw('count(distinct article_id)'))
+            ->table('course_categories_courses')
+            ->select(DB::raw('count(distinct course_id)'))
             ->where($this->keyName(), '>', $this->cursor->get())
             ->first()
             ->count;
@@ -31,23 +29,23 @@ class MigrateArticleTags extends Migration
     public function query(): Builder
     {
         return DB::connection('old')
-            ->table('article_categories_articles')
-            ->groupBy('article_id')
+            ->table('course_categories_courses')
+            ->groupBy('course_id')
             ->select([
-                'article_id',
-                DB::raw("string_agg(article_category_id::text, ';') as related")
+                'course_id',
+                DB::raw("string_agg(course_category_id::text, ';') as related")
             ]);
     }
 
     public function keyName(): string
     {
-        return 'article_id';
+        return 'course_id';
     }
 
     public function dependsOn(): array
     {
         return [
-            new MigrateArticleCategories(),
+            new MigrateCourseCategories(),
 
             new MigrateArticles(),
             new MigrateCourses(),
@@ -76,8 +74,6 @@ class MigrateArticleTags extends Migration
      * content_item_id — ссылка на nn6g0_content
      *
      * tag_id — ссылка на nn6g0_tags
-     *
-     * todo 1760 migrated; 11938 failed
      */
     public function migrate(stdClass $row): bool
     {
@@ -93,27 +89,23 @@ class MigrateArticleTags extends Migration
     public function migrateTag(stdClass $row, $category_id): bool
     {
         try {
-            $tag_id = $this->joomla->migrated_id(Category::article_tag, $category_id);
+            $tag_id = $this->joomla->migrated_id(Category::course_tag, $category_id);
         } catch (RecordsNotFoundException) {
             return false;
         }
 
-        $article = $this->joomla->migrated(Category::articles, $row->article_id)->sole();
+        $course = $this->joomla->migrated(Category::courses, $row->course_id)->sole();
 
         // Алиасы не уникальны, хотя должны.
         // Но мы знаем, что записи, которые мы мигрировали, шли позже тех, что были изначально.
         // Поэтому берём последнюю найденную.
-        try {
-            $core = $this->core($article->alias)->latest('core_content_id')->firstOrFail();
-        } catch (RecordNotFoundException) {
-            dd("$article->alias not found in nn6g0_ucm_content");
-        }
+        $core = $this->core($course->alias)->latest('core_content_id')->firstOrFail();
 
         return DB::connection('new')
             ->table($this->table())
             ->updateOrInsert([
                 'core_content_id' => $core->core_content_id,
-                'content_item_id' => $article->id,
+                'content_item_id' => $course->id,
                 'tag_id'          => $tag_id,
             ], [
                 'type_alias' => 'com_content.article',

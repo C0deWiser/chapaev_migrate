@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'migrate' => env('MIGRATE_IMAGES', false),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

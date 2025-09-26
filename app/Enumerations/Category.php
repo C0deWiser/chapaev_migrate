@@ -2,10 +2,9 @@
 
 namespace App\Enumerations;
 
-use stdClass;
-
 enum Category: int
 {
+    case courses = 8;
     case films = 9;
     case news = 12;
     case faces = 15;
@@ -15,7 +14,8 @@ enum Category: int
     // Not a joomla real categories
     case photo = 88888;
     case gallery = 99999;
-    case tag = 99998;
+    case article_tag = 99998;
+    case course_tag = 99997;
 
     public static function fromName(string $name): self
     {
@@ -39,11 +39,12 @@ enum Category: int
     {
         return match ($this) {
             self::faces,
-            self::authors => 'nn6g0_contact_details',
-            self::photo   => 'nn6g0_phocagallery',
-            self::gallery => 'nn6g0_phocagallery_categories',
-            self::tag     => 'nn6g0_tags',
-            default       => 'nn6g0_content',
+            self::authors     => 'nn6g0_contact_details',
+            self::photo       => 'nn6g0_phocagallery',
+            self::gallery     => 'nn6g0_phocagallery_categories',
+            self::course_tag,
+            self::article_tag => 'nn6g0_tags',
+            default           => 'nn6g0_content',
         };
     }
 
@@ -56,13 +57,15 @@ enum Category: int
     {
         return match ($this) {
             self::faces,
-            self::authors  => "person-$old_key",
-            self::articles => "article-$old_key",
-            self::films    => "film-$old_key",
-            self::news     => "post-$old_key",
-            self::photo    => "photo-$old_key",
-            self::gallery  => "gallery-$old_key",
-            self::tag      => "tag-$old_key",
+            self::authors     => "person-$old_key",
+            self::articles    => "article-$old_key",
+            self::films       => "film-$old_key",
+            self::news        => "post-$old_key",
+            self::photo       => "photo-$old_key",
+            self::gallery     => "gallery-$old_key",
+            self::courses     => "course-$old_key",
+            self::article_tag => "article-tag-$old_key",
+            self::course_tag  => "course-tag-$old_key",
         };
     }
 
@@ -70,27 +73,31 @@ enum Category: int
     {
         return match ($this) {
             self::faces,
-            self::authors  => 'person',
-            self::articles => 'article',
-            self::films    => 'film',
-            self::news     => 'post',
-            self::photo    => 'photo',
+            self::authors     => 'person',
+            self::articles    => 'article',
+            self::films       => 'film',
+            self::news        => 'post',
+            self::photo       => 'photo',
+            self::courses     => 'course',
             self::gallery,
-            self::tag      => throw new \Exception('To be implemented'),
+            self::course_tag,
+            self::article_tag => throw new \Exception('To be implemented'),
         };
     }
 
     public function targetDir(): string
     {
         return match ($this) {
-            self::faces    => 'faces',
-            self::authors  => 'authors',
-            self::articles => 'articles',
-            self::films    => 'films',
-            self::news     => 'news',
-            self::photo    => 'phocagallery',
+            self::faces       => 'faces',
+            self::authors     => 'authors',
+            self::articles    => 'articles',
+            self::films       => 'films',
+            self::news        => 'news',
+            self::photo       => 'phocagallery',
+            self::courses     => 'courses',
             self::gallery,
-            self::tag      => throw new \Exception('To be implemented'),
+            self::course_tag,
+            self::article_tag => throw new \Exception('To be implemented'),
         };
     }
 }

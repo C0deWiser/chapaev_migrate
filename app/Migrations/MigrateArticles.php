@@ -26,7 +26,9 @@ class MigrateArticles extends Migration
 
     public function dependsOn(): array
     {
-        return [];
+        return [
+            new MigrateCourses(),
+        ];
     }
 
     public function before(): void
@@ -39,7 +41,7 @@ class MigrateArticles extends Migration
         $migration_id = Category::articles->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug($row->title,
-            fn(string $alias) => DB::connection('new')
+            unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
                 ->where('catid', Category::articles)
@@ -83,6 +85,11 @@ class MigrateArticles extends Migration
             'featured'         => 0,
             'language'         => '*',
             'note'             => '',
+            'metakey'          => $row->course_id
+                ? $this->joomla->json_encode(
+                    $this->joomla->metakeys(Category::courses, [$row->course_id]),
+                )
+                : ''
         ];
 
         return DB::connection('new')

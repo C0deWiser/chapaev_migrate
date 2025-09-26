@@ -43,7 +43,7 @@ class MigratePeople extends Migration
         $migration_id = $category->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug([$row->name, $row->second_name, $row->last_name],
-            fn(string $alias) => DB::connection('new')
+            unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
                 ->whereNot('migration', $migration_id)

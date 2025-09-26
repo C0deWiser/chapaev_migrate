@@ -7,7 +7,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class MigrateTags extends Migration
+class MigrateCourseCategories extends Migration
 {
     public function table(): string
     {
@@ -17,7 +17,7 @@ class MigrateTags extends Migration
     public function query(): Builder
     {
         return DB::connection('old')
-            ->table('article_categories');
+            ->table('course_categories');
     }
 
     public function keyName(): string
@@ -37,10 +37,10 @@ class MigrateTags extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::tag->migration_id($row->id);
+        $migration_id = Category::course_tag->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug($row->title,
-            fn(string $alias) => DB::connection('new')
+            unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
                 ->whereNot('migration', $migration_id)

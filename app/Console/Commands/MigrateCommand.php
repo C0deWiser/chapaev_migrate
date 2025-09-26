@@ -7,6 +7,9 @@ use App\Migrations\MigrateArticleFilms;
 use App\Migrations\MigrateArticlePeople;
 use App\Migrations\MigrateArticles;
 use App\Migrations\MigrateArticleTags;
+use App\Migrations\MigrateCourseCategories;
+use App\Migrations\MigrateCourses;
+use App\Migrations\MigrateCourseTags;
 use App\Migrations\MigrateFilmArticles;
 use App\Migrations\MigrateFilmDirectors;
 use App\Migrations\MigrateFilmFormats;
@@ -26,7 +29,7 @@ use App\Migrations\MigratePeopleRewards;
 use App\Migrations\MigratePhotos;
 use App\Migrations\MigrateRelinkContacts;
 use App\Migrations\MigrateRelinkContents;
-use App\Migrations\MigrateTags;
+use App\Migrations\MigrateArticleCategories;
 use Illuminate\Support\Facades\DB;
 
 class MigrateCommand extends \Fcz\Migrator\MigrateCommand
@@ -50,14 +53,19 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
     public function migrations(): array
     {
         return [
-            'Tags'     => fn() => new MigrateTags(),
             'News'     => fn() => new MigrateNews(),
             'Films'    => fn() => new MigrateFilms(),
             'People'   => fn() => new MigratePeople(),
+            'Courses'  => fn() => new MigrateCourses(),
             'Articles' => fn() => new MigrateArticles(),
+
+            'Categories-of-Articles' => fn() => new MigrateArticleCategories(),
+            'Categories-of-Courses'  => fn() => new MigrateCourseCategories(),
 
             'Article-Relink' => fn() => new MigrateRelinkContents(),
             'Person-Relink'  => fn() => new MigrateRelinkContacts(),
+
+            'Course-Tags'  => fn() => new MigrateCourseTags(),
 
             'Article-Tags'    => fn() => new MigrateArticleTags(),
             'Article-Films'   => fn() => new MigrateArticleFilms(),

@@ -61,7 +61,7 @@ class MigrateFilmArticles extends Migration
         );
 
         return $builder->update([
-                'metakey' => $this->joomla->json_encode($metakey) ?? ''
-            ]);
+            'metakey' => $this->joomla->json_encode($metakey) ?? ''
+        ]);
     }
 }

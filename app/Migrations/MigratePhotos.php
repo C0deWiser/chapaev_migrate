@@ -40,6 +40,9 @@ class MigratePhotos extends Migration
         $this->joomla->addMigrationColumn($this->table());
     }
 
+    /**
+     * todo 8730 failed
+     */
     public function migrate(stdClass $row): bool
     {
         $migration_id = Category::photo->migration_id($row->id);

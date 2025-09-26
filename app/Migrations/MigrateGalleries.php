@@ -38,12 +38,15 @@ class MigrateGalleries extends Migration
         $this->joomla->addMigrationColumn($this->table());
     }
 
+    /**
+     * todo 632 failed
+     */
     public function migrate(stdClass $row): bool
     {
         $migration_id = Category::gallery->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug($row->title,
-            fn(string $alias) => DB::connection('new')
+            unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
                 ->whereNot('migration', $migration_id)

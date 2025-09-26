@@ -40,7 +40,7 @@ class MigrateFilms extends Migration
         $migration_id = Category::films->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug($row->title,
-            fn(string $alias) => DB::connection('new')
+            unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
                 ->where('catid', Category::films)

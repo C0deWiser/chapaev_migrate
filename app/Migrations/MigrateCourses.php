@@ -7,7 +7,7 @@ use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class MigrateNews extends Migration
+class MigrateCourses extends Migration
 {
     public function table(): string
     {
@@ -16,7 +16,11 @@ class MigrateNews extends Migration
 
     public function query(): Builder
     {
-        return DB::connection('old')->table('posts');
+        return DB::connection('old')
+            ->table('courses')
+            // Курсы без родителя будут мигрировать первыми
+            // Курсы с родителем пойдут позже и мы сразу сможем сделать ссылку
+            ->orderBy('course_id', 'desc');
     }
 
     public function keyName(): string
@@ -26,7 +30,9 @@ class MigrateNews extends Migration
 
     public function dependsOn(): array
     {
-        return [];
+        return [
+            //
+        ];
     }
 
     public function before(): void
@@ -36,13 +42,13 @@ class MigrateNews extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::news->migration_id($row->id);
+        $migration_id = Category::courses->migration_id($row->id);
 
         $slug = $this->joomla->makeSlug($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
-                ->where('catid', Category::news)
+                ->where('catid', Category::courses)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -51,10 +57,10 @@ class MigrateNews extends Migration
             'asset_id'         => 0,
             'title'            => $row->title,
             'alias'            => $slug,
-            'introtext'        => $row->subtitle ?: '',
-            'fulltext'         => $row->body,
+            'introtext'        => $row->preview_text ?: '',
+            'fulltext'         => $row->detail_text,
             'state'            => $row->active,
-            'catid'            => Category::news,
+            'catid'            => Category::courses,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -62,17 +68,26 @@ class MigrateNews extends Migration
             'modified_by'      => 0,
             'checked_out'      => null,
             'checked_out_time' => null,
-            'publish_up'       => $row->date_from ?? $row->created_at,
+            'publish_up'       => $row->created_at,
             'publish_down'     => null,
-            'images'           => $this->joomla->json_encode($this->joomla->images($row, [
-                'image_intro' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::news, $row->id, $row->picture)
+            'images'           => $this->joomla->json_encode(($this->joomla->images($row, [
+                'image_intro'    => $row->picture || $row->preview_picture
+                    ? 'images/'.$this->joomla->downloadAs(
+                        Category::courses, $row->id,
+                        $row->picture ?: $row->preview_picture
+                    )
+                    : '',
+                'image_fulltext' => $row->preview_picture || $row->big_preview_picture
+                    ? 'images/'.$this->joomla->downloadAs(
+                        Category::courses, $row->id,
+                        $row->big_preview_picture ?: $row->preview_picture
+                    )
                     : ''
-            ])),
+            ]))),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
             'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,
-            'ordering'         => 0,
+            'ordering'         => $row->sort ?? 0,
             'metadesc'         => '',
             'access'           => 1,
             'hits'             => 0,
@@ -80,6 +95,11 @@ class MigrateNews extends Migration
             'featured'         => 0,
             'language'         => '*',
             'note'             => '',
+            'metakey'          => $row->course_id
+                ? $this->joomla->json_encode(
+                    $this->joomla->metakeys(Category::courses, [$row->course_id]),
+                )
+                : ''
         ];
 
         return DB::connection('new')

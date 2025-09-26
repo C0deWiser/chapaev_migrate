@@ -30,7 +30,7 @@ class Joomla
         $slug = str($title)->squish()->slug()->toString();
 
         if (is_callable($unique)) {
-            while (!$unique($slug)) {
+            while (! $unique($slug)) {
                 $slug .= '-';
             }
         }
@@ -55,7 +55,7 @@ class Joomla
     {
         $key = $category->name.$old_key;
 
-        if (!isset($this->migrated_id[$key])) {
+        if (! isset($this->migrated_id[$key])) {
             $this->migrated_id[$key] = $this->migrated($category, $old_key)->sole()->id;
         }
 
@@ -153,15 +153,15 @@ class Joomla
     public function images(stdClass $row, array $images = []): array
     {
         return $images + [
-            "image_intro"            => "",
-            "image_intro_alt"        => "",
-            "float_intro"            => "",
-            "image_intro_caption"    => "",
-            "image_fulltext"         => "",
-            "image_fulltext_alt"     => "",
-            "float_fulltext"         => "",
-            "image_fulltext_caption" => ""
-        ];
+                "image_intro"            => "",
+                "image_intro_alt"        => "",
+                "float_intro"            => "",
+                "image_intro_caption"    => "",
+                "image_fulltext"         => "",
+                "image_fulltext_alt"     => "",
+                "float_fulltext"         => "",
+                "image_fulltext_caption" => ""
+            ];
     }
 
     public function urls(stdClass $row): array
@@ -215,7 +215,7 @@ class Joomla
 
     public function metakey(Category $category, int $old_key): string
     {
-        if (!isset(static::$keyMap[$category->value][$old_key])) {
+        if (! isset(static::$keyMap[$category->value][$old_key])) {
             static::$keyMap[$category->value][$old_key] = $category->relation_id(
                 $this->migrated($category, $old_key)->sole()->id
             );
@@ -281,10 +281,14 @@ class Joomla
     {
         $target = str($source)->after('uploads/')->toString();
 
-        Storage::makeDirectory(dirname($target));
+        if (config('filesystems.migrate')) {
+            Storage::makeDirectory(dirname($target));
 
-        if (Storage::missing($target)) {
-            Http::sink(Storage::path($target))->get($source);
+            if (Storage::missing($target)) {
+                Http::sink(Storage::path($target))
+                    ->get($source)
+                    ->throwUnlessStatus(404);
+            }
         }
 
         return $target;
@@ -299,10 +303,13 @@ class Joomla
 
         $target = "{$category->targetDir()}/$filename";
 
-        if (Storage::missing($target)) {
-            Http::baseUrl('https://api.chapaev.media/storage/')
-                ->sink(Storage::path($target))
-                ->get("{$category->sourceDir()}/$old_key/$filename");
+        if (config('filesystems.migrate')) {
+            if (Storage::missing($target)) {
+                Http::baseUrl('https://api.chapaev.media/storage/')
+                    ->sink(Storage::path($target))
+                    ->get("{$category->sourceDir()}/$old_key/$filename")
+                    ->throwUnlessStatus(404);
+            }
         }
 
         return $target;
@@ -310,7 +317,7 @@ class Joomla
 
     public function merge_metakeys(?stdClass $row, array $append): array
     {
-        if (!$row) {
+        if (! $row) {
             return $append;
         }
 
@@ -318,7 +325,7 @@ class Joomla
             ? json_decode($row->metakey, true)
             : null;
 
-        if (!is_array($metakey)) {
+        if (! is_array($metakey)) {
             $metakey = [];
         }
 
