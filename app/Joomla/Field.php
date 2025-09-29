@@ -87,7 +87,7 @@ class Field
                     'context'       => $this->context,
                     'title'         => $this->name,
                     'asset_id'      => 0,
-                    'name'          => (new Joomla)->makeSlug($this->name),
+                    'name'          => (new Joomla)->makeAlias($this->name),
                     'label'         => $this->name,
                     'type'          => $this->type,
                     'note'          => '',

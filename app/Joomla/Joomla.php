@@ -16,12 +16,14 @@ use stdClass;
 class Joomla
 {
     /**
+     * Создает alias из названия. Можно обеспечить уникальность...
+     *
      * @param  string|array  $title
      * @param  null|Closure(string):boolean  $unique  Функция проверки уникальности предложенного slug.
      *
      * @return string
      */
-    public function makeSlug(string|array $title, ?Closure $unique = null): string
+    public function makeAlias(string|array $title, ?Closure $unique = null): string
     {
         $title = is_array($title) ? $title : [$title];
 
@@ -39,7 +41,7 @@ class Joomla
     }
 
     /**
-     * Get a migrated record.
+     * Возвращает смигрированную запись по её старому ключу.
      */
     public function migrated(Category $category, int $old_key): Builder
     {
@@ -48,18 +50,23 @@ class Joomla
             ->where('migration', $category->migration_id($old_key));
     }
 
-    /** Not static!!! */
-    protected array $migrated_id = [];
+    /**
+     * Запоминаем карту миграции.
+     */
+    protected static array $migrated_id = [];
 
+    /**
+     * Находит соответствие old_id в new_id
+     */
     public function migrated_id(Category $category, int $old_key): int
     {
         $key = $category->name.$old_key;
 
-        if (! isset($this->migrated_id[$key])) {
-            $this->migrated_id[$key] = $this->migrated($category, $old_key)->sole()->id;
+        if (! isset(self::$migrated_id[$key])) {
+            self::$migrated_id[$key] = $this->migrated($category, $old_key)->sole()->id;
         }
 
-        return $this->migrated_id[$key];
+        return self::$migrated_id[$key];
     }
 
     public function metadata(stdClass $row): array
@@ -120,6 +127,9 @@ class Joomla
         return str($text)->replace($matches[0], $replacements);
     }
 
+    /**
+     * Добавляет в таблицу колонку migration, если её там не было.
+     */
     public function addMigrationColumn(string $table, string $column = 'migration'): void
     {
         try {
@@ -211,17 +221,14 @@ class Joomla
         ];
     }
 
-    protected static array $keyMap = [];
-
+    /**
+     * Превращает old_id в метакей вида category/new_id
+     */
     public function metakey(Category $category, int $old_key): string
     {
-        if (! isset(static::$keyMap[$category->value][$old_key])) {
-            static::$keyMap[$category->value][$old_key] = $category->relation_id(
-                $this->migrated($category, $old_key)->sole()->id
-            );
-        }
-
-        return static::$keyMap[$category->value][$old_key];
+        return $category->relation_id(
+            $this->migrated_id($category, $old_key)
+        );
     }
 
     /**
@@ -315,6 +322,9 @@ class Joomla
         return $target;
     }
 
+    /**
+     * Объединяет новые метаключи с существующими.
+     */
     public function merge_metakeys(?stdClass $row, array $append): array
     {
         if (! $row) {
@@ -334,5 +344,19 @@ class Joomla
                 array_merge($metakey, $append)
             )
         );
+    }
+
+    /**
+     * Алиасы не уникальны, хотя должны.
+     * Но мы знаем, что записи, которые мы мигрировали, шли позже тех, что были изначально.
+     * Поэтому предлагаем последнюю найденную.
+     */
+    public function ucmContent(string $alias): Builder
+    {
+        return DB::connection('new')
+            ->table('nn6g0_ucm_content')
+            ->where('core_type_alias', 'com_content.article')
+            ->where('core_alias', $alias)
+            ->latest('core_content_id');
     }
 }

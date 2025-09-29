@@ -42,7 +42,7 @@ class MigratePeople extends Migration
 
         $migration_id = $category->migration_id($row->id);
 
-        $slug = $this->joomla->makeSlug([$row->name, $row->second_name, $row->last_name],
+        $alias = $this->joomla->makeAlias([$row->name, $row->second_name, $row->last_name],
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
@@ -52,7 +52,7 @@ class MigratePeople extends Migration
 
         $data = [
             'name'             => str("$row->name $row->second_name $row->last_name")->squish()->toString(),
-            'alias'            => $slug,
+            'alias'            => $alias,
             'con_position'     => '',
             'address'          => '',
             'suburb'           => '',

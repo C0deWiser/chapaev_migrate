@@ -4,6 +4,7 @@ namespace App\Migrations;
 
 use App\Enumerations\Category;
 use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\RecordNotFoundException;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
@@ -38,14 +39,11 @@ class MigrateGalleries extends Migration
         $this->joomla->addMigrationColumn($this->table());
     }
 
-    /**
-     * todo 632 failed
-     */
     public function migrate(stdClass $row): bool
     {
         $migration_id = Category::gallery->migration_id($row->id);
 
-        $slug = $this->joomla->makeSlug($row->title,
+        $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
@@ -63,29 +61,29 @@ class MigrateGalleries extends Migration
         }
 
         $data = [
-            'title' => $row->title,
-            'name' => '',
-            'alias' => $slug,
-            'image' => '',
-            'section' => '',
+            'title'          => $row->title,
+            'name'           => '',
+            'alias'          => $alias,
+            'image'          => '',
+            'section'        => '',
             'image_position' => '',
-            'date' => $row->created_at ?? now(),
-            'published' => 1,
-            'approved' => 1,
-            'ordering' => $row->sort ?? 0,
-            'access' => 1,
-            'latitude' => '',
-            'longitude' => '',
-            'geotitle' => '',
-            'extid' => '',
-            'exta' => '',
-            'extu' => '',
-            'extauth' => '',
-            'imgurclient' => '',
-            'imguralbum' => '',
-            'extfbcatid' => '',
-            'metakey' => $this->joomla->json_encode($metakey),
-            'language' => '*'
+            'date'           => $row->created_at ?? now(),
+            'published'      => 1,
+            'approved'       => 1,
+            'ordering'       => $row->sort ?? 0,
+            'access'         => 1,
+            'latitude'       => '',
+            'longitude'      => '',
+            'geotitle'       => '',
+            'extid'          => '',
+            'exta'           => '',
+            'extu'           => '',
+            'extauth'        => '',
+            'imgurclient'    => '',
+            'imguralbum'     => '',
+            'extfbcatid'     => '',
+            'metakey'        => $this->joomla->json_encode($metakey),
+            'language'       => '*'
         ];
 
         return DB::connection('new')

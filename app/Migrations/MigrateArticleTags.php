@@ -100,14 +100,7 @@ class MigrateArticleTags extends Migration
 
         $article = $this->joomla->migrated(Category::articles, $row->article_id)->sole();
 
-        // Алиасы не уникальны, хотя должны.
-        // Но мы знаем, что записи, которые мы мигрировали, шли позже тех, что были изначально.
-        // Поэтому берём последнюю найденную.
-        try {
-            $core = $this->core($article->alias)->latest('core_content_id')->firstOrFail();
-        } catch (RecordNotFoundException) {
-            dd("$article->alias not found in nn6g0_ucm_content");
-        }
+        $core = $this->joomla->ucmContent($article->alias)->firstOrFail();
 
         return DB::connection('new')
             ->table($this->table())
@@ -119,13 +112,5 @@ class MigrateArticleTags extends Migration
                 'type_alias' => 'com_content.article',
                 'type_id'    => 1,
             ]);
-    }
-
-    public function core(string $alias): Builder
-    {
-        return DB::connection('new')
-            ->table('nn6g0_ucm_content')
-            ->where('core_type_alias', 'com_content.article')
-            ->where('core_alias', $alias);
     }
 }

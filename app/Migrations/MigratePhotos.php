@@ -40,9 +40,6 @@ class MigratePhotos extends Migration
         $this->joomla->addMigrationColumn($this->table());
     }
 
-    /**
-     * todo 8730 failed
-     */
     public function migrate(stdClass $row): bool
     {
         $migration_id = Category::photo->migration_id($row->id);
@@ -51,7 +48,7 @@ class MigratePhotos extends Migration
         $title = str($row->title)->substr(0, 250)->toString();
 
         // todo они будут повторяться! Так можно?
-        $slug = $this->joomla->makeSlug($title);
+        $alias = $this->joomla->makeAlias($title);
 
         $downloaded = $this->joomla->downloadAs(Category::photo, $row->id, $row->picture);
 
@@ -59,7 +56,7 @@ class MigratePhotos extends Migration
             'catid'       => $this->joomla->migrated_id(Category::gallery, $row->gallery_id),
             'sid'         => 0,
             'title'       => $title,
-            'alias'       => $slug,
+            'alias'       => $alias,
             'filename'    => $row->picture,
             'format'      => 1,
             'date'        => $row->created_at ?? now(),

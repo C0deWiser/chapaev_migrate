@@ -44,7 +44,7 @@ class MigrateCourses extends Migration
     {
         $migration_id = Category::courses->migration_id($row->id);
 
-        $slug = $this->joomla->makeSlug($row->title,
+        $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
@@ -56,7 +56,7 @@ class MigrateCourses extends Migration
         $data = [
             'asset_id'         => 0,
             'title'            => $row->title,
-            'alias'            => $slug,
+            'alias'            => $alias,
             'introtext'        => $row->preview_text ?: '',
             'fulltext'         => $row->detail_text,
             'state'            => $row->active,

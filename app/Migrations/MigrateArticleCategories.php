@@ -39,7 +39,7 @@ class MigrateArticleCategories extends Migration
     {
         $migration_id = Category::article_tag->migration_id($row->id);
 
-        $slug = $this->joomla->makeSlug($row->title,
+        $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
@@ -49,9 +49,9 @@ class MigrateArticleCategories extends Migration
 
         $data = [
             'parent_id'        => 1,
-            'path'             => $slug,
+            'path'             => $alias,
             'title'            => $row->title,
-            'alias'            => $slug,
+            'alias'            => $alias,
             'note'             => '',
             'description'      => '',
             'published'        => 1,

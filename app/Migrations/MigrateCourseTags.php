@@ -96,10 +96,7 @@ class MigrateCourseTags extends Migration
 
         $course = $this->joomla->migrated(Category::courses, $row->course_id)->sole();
 
-        // Алиасы не уникальны, хотя должны.
-        // Но мы знаем, что записи, которые мы мигрировали, шли позже тех, что были изначально.
-        // Поэтому берём последнюю найденную.
-        $core = $this->core($course->alias)->latest('core_content_id')->firstOrFail();
+        $core = $this->joomla->ucmContent($course->alias)->firstOrFail();
 
         return DB::connection('new')
             ->table($this->table())

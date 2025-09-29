@@ -40,7 +40,7 @@ class MigrateArticles extends Migration
     {
         $migration_id = Category::articles->migration_id($row->id);
 
-        $slug = $this->joomla->makeSlug($row->title,
+        $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
@@ -52,7 +52,7 @@ class MigrateArticles extends Migration
         $data = [
             'asset_id'         => 0,
             'title'            => $row->title,
-            'alias'            => $slug,
+            'alias'            => $alias,
             'introtext'        => $row->subtitle ?: '',
             'fulltext'         => $row->body,
             'state'            => $row->active,
