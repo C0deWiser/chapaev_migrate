@@ -51,12 +51,27 @@ DB_NEW_PASSWORD=
 > найти в файле `config/database.php` (разделы `connections.old` и 
 > `connections.new`)
 
-В переменную `JOOMLA_IMAGES_PATH` прописать полный путь к папке `/images` в 
-составе `Joomla`. Например:
+В переменную `JOOMLA_IMAGES_PATH` можно прописать полный путь к папке 
+`/images` в составе `Joomla`. Например:
 
 ```dotenv
-JOOMLA_IMAGES_PATH=/web/joomla/images
+JOOMLA_IMAGES_PATH=/path/to/joomla/images
+MIGRATE_IMAGES=true
 ```
+
+Или можно сделать symlink из папки размещения Joomla в папку storage данного 
+приложения:
+
+```shell
+ln -s /path/to/joomla/images /path/to/this/storage/joomla
+```
+
+На время тестовых прогонов рекомендуется отключить скачивание изображений:
+
+```dotenv
+MIGRATE_IMAGES=false
+```
+
 
 ## Выполнение
 
