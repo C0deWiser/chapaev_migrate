@@ -80,7 +80,26 @@ class Joomla
 
     public function relink(string $text): string
     {
-        return $this->replaceHref($this->replaceImgSrc($text));
+        return $this->replaceHref(
+            $this->replaceImgSrc($text)
+        );
+    }
+
+    public function replaceImgStyle(string $text): string
+    {
+        $patterns = [
+            '/<img.*?style=".*?(width:.*?\d+?px;?)/',
+            '/<img.*?style=".*?(height:.*?\d+?px;?)/',
+        ];
+
+        foreach ($patterns as $pattern) {
+            preg_match_all($pattern, $text, $matches);
+            //dump($matches);
+
+            $text = str($text)->replace($matches[1], '');
+        }
+
+        return $text;
     }
 
     protected function replaceImgSrc(string $text): string

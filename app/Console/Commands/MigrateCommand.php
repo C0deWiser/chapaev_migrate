@@ -30,6 +30,7 @@ use App\Migrations\MigratePhotos;
 use App\Migrations\MigrateRelinkContacts;
 use App\Migrations\MigrateRelinkContents;
 use App\Migrations\MigrateArticleCategories;
+use App\Migrations\MigrateRestyleContents;
 use Illuminate\Support\Facades\DB;
 
 class MigrateCommand extends \Fcz\Migrator\MigrateCommand
@@ -62,10 +63,11 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Categories-of-Articles' => fn() => new MigrateArticleCategories(),
             'Categories-of-Courses'  => fn() => new MigrateCourseCategories(),
 
-            'Article-Relink' => fn() => new MigrateRelinkContents(),
-            'Person-Relink'  => fn() => new MigrateRelinkContacts(),
+            'Article-Relink'  => fn() => new MigrateRelinkContents(),
+            'Article-Restyle' => fn() => new MigrateRestyleContents(),
+            'Person-Relink'   => fn() => new MigrateRelinkContacts(),
 
-            'Course-Tags'  => fn() => new MigrateCourseTags(),
+            'Course-Tags' => fn() => new MigrateCourseTags(),
 
             'Article-Tags'    => fn() => new MigrateArticleTags(),
             'Article-Films'   => fn() => new MigrateArticleFilms(),
