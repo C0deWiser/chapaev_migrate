@@ -21,6 +21,8 @@ use App\Migrations\MigrateFilms;
 use App\Migrations\MigrateFilmStudios;
 use App\Migrations\MigrateGalleries;
 use App\Migrations\MigrateNews;
+use App\Migrations\MigrateNewsCategories;
+use App\Migrations\MigrateNewsTags;
 use App\Migrations\MigratePeople;
 use App\Migrations\MigratePeopleArticle;
 use App\Migrations\MigratePeopleFilm;
@@ -60,6 +62,7 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Courses'  => fn() => new MigrateCourses(),
             'Articles' => fn() => new MigrateArticles(),
 
+            'Categories-of-News'     => fn() => new MigrateNewsCategories(),
             'Categories-of-Articles' => fn() => new MigrateArticleCategories(),
             'Categories-of-Courses'  => fn() => new MigrateCourseCategories(),
 
@@ -68,6 +71,8 @@ class MigrateCommand extends \Fcz\Migrator\MigrateCommand
             'Person-Relink'   => fn() => new MigrateRelinkContacts(),
 
             'Course-Tags' => fn() => new MigrateCourseTags(),
+
+            'News-Tags' => fn() => new MigrateNewsTags(),
 
             'Article-Tags'    => fn() => new MigrateArticleTags(),
             'Article-Films'   => fn() => new MigrateArticleFilms(),

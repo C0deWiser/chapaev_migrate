@@ -14,6 +14,7 @@ enum Category: int
     // Not a joomla real categories
     case photo = 88888;
     case gallery = 99999;
+    case news_tag = 99996;
     case article_tag = 99998;
     case course_tag = 99997;
 
@@ -42,6 +43,7 @@ enum Category: int
             self::authors     => 'nn6g0_contact_details',
             self::photo       => 'nn6g0_phocagallery',
             self::gallery     => 'nn6g0_phocagallery_categories',
+            self::news_tag,
             self::course_tag,
             self::article_tag => 'nn6g0_tags',
             default           => 'nn6g0_content',
@@ -66,6 +68,7 @@ enum Category: int
             self::courses     => "course-$old_key",
             self::article_tag => "article-tag-$old_key",
             self::course_tag  => "course-tag-$old_key",
+            self::news_tag    => "news-tag-$old_key",
         };
     }
 
@@ -80,6 +83,7 @@ enum Category: int
             self::photo       => 'photo',
             self::courses     => 'course',
             self::gallery,
+            self::news_tag,
             self::course_tag,
             self::article_tag => throw new \Exception('To be implemented'),
         };
@@ -96,6 +100,7 @@ enum Category: int
             self::photo       => 'phocagallery',
             self::courses     => 'courses',
             self::gallery,
+            self::news_tag,
             self::course_tag,
             self::article_tag => throw new \Exception('To be implemented'),
         };
