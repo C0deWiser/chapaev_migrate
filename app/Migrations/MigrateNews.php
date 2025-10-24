@@ -36,13 +36,15 @@ class MigrateNews extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::news->migration_id($row->id);
+        $category = Category::news;
+
+        $migration_id = $category->migration_id($row->id);
 
         $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
-                ->where('catid', Category::news)
+                ->where('catid', $category)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -54,7 +56,7 @@ class MigrateNews extends Migration
             'introtext'        => $row->subtitle ?: '',
             'fulltext'         => $row->body,
             'state'            => $row->active,
-            'catid'            => Category::news,
+            'catid'            => $category,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -66,7 +68,7 @@ class MigrateNews extends Migration
             'publish_down'     => null,
             'images'           => $this->joomla->json_encode($this->joomla->images($row, [
                 'image_intro' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::news, $row->id, $row->picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
                     : ''
             ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),

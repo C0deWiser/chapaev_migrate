@@ -38,13 +38,15 @@ class MigrateArticles extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::articles->migration_id($row->id);
+        $category = Category::articles;
+
+        $migration_id = $category->migration_id($row->id);
 
         $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
-                ->where('catid', Category::articles)
+                ->where('catid', $category)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -56,7 +58,7 @@ class MigrateArticles extends Migration
             'introtext'        => $row->subtitle ?: '',
             'fulltext'         => $row->body,
             'state'            => $row->active,
-            'catid'            => Category::articles,
+            'catid'            => $category,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -66,14 +68,14 @@ class MigrateArticles extends Migration
             'checked_out_time' => null,
             'publish_up'       => $row->created_at,
             'publish_down'     => null,
-            'images'           => $this->joomla->json_encode(($this->joomla->images($row, [
+            'images'           => $this->joomla->json_encode($this->joomla->images($row, [
                 'image_intro' => $row->preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::articles, $row->id, $row->preview_picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->preview_picture)
                     : '',
                 'image_fulltext' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::articles, $row->id, $row->picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
                     : '',
-            ]))),
+            ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
             'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,

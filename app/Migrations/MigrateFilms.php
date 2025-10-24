@@ -37,13 +37,15 @@ class MigrateFilms extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::films->migration_id($row->id);
+        $category = Category::films;
+
+        $migration_id = $category->migration_id($row->id);
 
         $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
-                ->where('catid', Category::films)
+                ->where('catid', $category)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -55,7 +57,7 @@ class MigrateFilms extends Migration
             'introtext'        => $row->preview_text ?? '',
             'fulltext'         => $row->detail_text ?? '',
             'state'            => $row->active,
-            'catid'            => Category::films,
+            'catid'            => $category,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -67,10 +69,10 @@ class MigrateFilms extends Migration
             'publish_down'     => null,
             'images'           => $this->joomla->json_encode($this->joomla->images($row, [
                 'image_intro' => $row->preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::films, $row->id, $row->preview_picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->preview_picture)
                     : '',
                 'image_fulltext' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::films, $row->id, $row->picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
                     : '',
             ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
@@ -91,7 +93,7 @@ class MigrateFilms extends Migration
             ->updateOrInsert(['migration' => $migration_id], $data);
 
         $this->fields(
-            $this->joomla->migrated(Category::films, $row->id)->sole(),
+            $this->joomla->migrated($category, $row->id)->sole(),
             $row
         );
 

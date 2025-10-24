@@ -42,13 +42,15 @@ class MigrateCourses extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $migration_id = Category::courses->migration_id($row->id);
+        $category = Category::courses;
+
+        $migration_id = $category->migration_id($row->id);
 
         $alias = $this->joomla->makeAlias($row->title,
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
-                ->where('catid', Category::courses)
+                ->where('catid', $category)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -60,7 +62,7 @@ class MigrateCourses extends Migration
             'introtext'        => $row->preview_text ?: '',
             'fulltext'         => $row->detail_text,
             'state'            => $row->active,
-            'catid'            => Category::courses,
+            'catid'            => $category,
             'created'          => $row->created_at,
             'created_by'       => 0,
             'created_by_alias' => '',
@@ -70,17 +72,17 @@ class MigrateCourses extends Migration
             'checked_out_time' => null,
             'publish_up'       => $row->created_at,
             'publish_down'     => null,
-            'images'           => $this->joomla->json_encode(($this->joomla->images($row, [
+            'images'           => $this->joomla->json_encode($this->joomla->images($row, [
                 'image_intro'    => $row->preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->preview_picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->preview_picture)
                     : '',
                 'image_fulltext' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->picture)
                     : '',
                 'image_big' => $row->big_preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->big_preview_picture)
+                    ? 'images/'.$this->joomla->downloadAs($category, $row->id, $row->big_preview_picture)
                     : ''
-            ]))),
+            ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
             'attribs'          => $this->joomla->json_encode($this->joomla->attribs($row)),
             'version'          => 1,
@@ -94,7 +96,7 @@ class MigrateCourses extends Migration
             'note'             => '',
             'metakey'          => $row->course_id
                 ? $this->joomla->json_encode(
-                    $this->joomla->metakeys(Category::courses, [$row->course_id]),
+                    $this->joomla->metakeys($category, [$row->course_id]),
                 )
                 : ''
         ];
