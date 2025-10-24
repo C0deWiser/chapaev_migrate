@@ -71,17 +71,14 @@ class MigrateCourses extends Migration
             'publish_up'       => $row->created_at,
             'publish_down'     => null,
             'images'           => $this->joomla->json_encode(($this->joomla->images($row, [
-                'image_intro'    => $row->picture || $row->preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(
-                        Category::courses, $row->id,
-                        $row->picture ?: $row->preview_picture
-                    )
+                'image_intro'    => $row->preview_picture
+                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->preview_picture)
                     : '',
-                'image_fulltext' => $row->preview_picture || $row->big_preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(
-                        Category::courses, $row->id,
-                        $row->big_preview_picture ?: $row->preview_picture
-                    )
+                'image_fulltext' => $row->picture
+                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->picture)
+                    : '',
+                'image_big' => $row->big_preview_picture
+                    ? 'images/'.$this->joomla->downloadAs(Category::courses, $row->id, $row->big_preview_picture)
                     : ''
             ]))),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
