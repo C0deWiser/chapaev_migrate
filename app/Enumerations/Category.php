@@ -85,7 +85,7 @@ enum Category: int
             self::gallery,
             self::news_tag,
             self::course_tag,
-            self::article_tag => throw new \Exception('To be implemented'),
+            self::article_tag => throw new \Exception('This is should not be used'),
         };
     }
 
@@ -102,7 +102,7 @@ enum Category: int
             self::gallery,
             self::news_tag,
             self::course_tag,
-            self::article_tag => throw new \Exception('To be implemented'),
+            self::article_tag => throw new \Exception('This is should not be used'),
         };
     }
 }

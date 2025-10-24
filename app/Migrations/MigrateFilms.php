@@ -67,10 +67,10 @@ class MigrateFilms extends Migration
             'publish_down'     => null,
             'images'           => $this->joomla->json_encode($this->joomla->images($row, [
                 'image_intro' => $row->preview_picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::articles, $row->id, $row->preview_picture)
+                    ? 'images/'.$this->joomla->downloadAs(Category::films, $row->id, $row->preview_picture)
                     : '',
                 'image_fulltext' => $row->picture
-                    ? 'images/'.$this->joomla->downloadAs(Category::articles, $row->id, $row->picture)
+                    ? 'images/'.$this->joomla->downloadAs(Category::films, $row->id, $row->picture)
                     : '',
             ])),
             'urls'             => $this->joomla->json_encode($this->joomla->urls($row)),
