@@ -36,6 +36,7 @@ return [
             'driver' => 'local',
             'root' => env('JOOMLA_IMAGES_PATH', storage_path('joomla')),
             'serve' => true,
+            'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
