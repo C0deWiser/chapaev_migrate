@@ -308,7 +308,10 @@ class Joomla
         $target = str($source)->after('uploads/')->toString();
 
         if (config('filesystems.migrate')) {
-            Storage::makeDirectory(dirname($target));
+
+            if (! Storage::directoryExists(dirname($target))) {
+                Storage::makeDirectory(dirname($target));
+            }
 
             if (Storage::missing($target)) {
                 Http::sink(Storage::path($target))
@@ -325,7 +328,9 @@ class Joomla
      */
     public function downloadAs(Category $category, int $old_key, string $filename): string
     {
-        Storage::makeDirectory($category->targetDir());
+        if (! Storage::directoryExists($category->targetDir())) {
+            Storage::makeDirectory($category->targetDir());
+        }
 
         $target = "{$category->targetDir()}/$filename";
 
