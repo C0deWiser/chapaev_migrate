@@ -38,14 +38,25 @@ class MigratePeople extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        $category = $row->is_author ? Category::authors : Category::faces;
+        return $row->is_author
+            ? (
+                $this->migrateWithCategory($row, Category::authors) &&
+                $this->migrateWithCategory($row, Category::faces)
+            )
+            : $this->migrateWithCategory($row, Category::faces);
 
+
+    }
+
+    protected function migrateWithCategory(stdClass $row, Category $category): bool
+    {
         $migration_id = $category->migration_id($row->id);
 
         $alias = $this->joomla->makeAlias([$row->name, $row->second_name, $row->last_name],
             unique: fn(string $alias) => DB::connection('new')
                 ->table($this->table())
                 ->where('alias', $alias)
+                ->where('catid', $category)
                 ->whereNot('migration', $migration_id)
                 ->doesntExist()
         );
@@ -61,7 +72,11 @@ class MigratePeople extends Migration
             'postcode'         => '',
             'telephone'        => '',
             'fax'              => '',
-            'misc'             => $row->detail_text ?? $row->preview_text ?? '',
+            'misc'             => match ($category) {
+                Category::authors => $row->preview_text ?? '',
+                Category::faces   => $row->detail_text ?? '',
+                default           => '',
+            },
             'image'            => $row->picture || $row->preview_picture
                 ? 'images/'.$this->joomla->downloadAs($category, $row->id,
                     $row->picture ?: $row->preview_picture
@@ -69,7 +84,7 @@ class MigratePeople extends Migration
                 : '',
             'email_to'         => '',
             'default_con'      => 0,
-            'published'        => $row->active,
+            'published'        => $row->active && $row->has_page,
             'checked_out'      => null,
             'checked_out_time' => null,
             'ordering'         => $row->sort ?? 0,
