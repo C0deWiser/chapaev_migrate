@@ -58,8 +58,8 @@ enum Category: int
     public function migration_id(int|string $old_key): string
     {
         return match ($this) {
-            self::faces,
-            self::authors     => "person-$old_key",
+            self::faces       => "person-$old_key",
+            self::authors     => "author-$old_key",
             self::articles    => "article-$old_key",
             self::films       => "film-$old_key",
             self::news        => "post-$old_key",

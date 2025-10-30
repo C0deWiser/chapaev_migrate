@@ -38,12 +38,13 @@ class MigratePeople extends Migration
 
     public function migrate(stdClass $row): bool
     {
-        return $row->is_author
-            ? (
-                $this->migrateWithCategory($row, Category::authors) &&
-                $this->migrateWithCategory($row, Category::faces)
-            )
-            : $this->migrateWithCategory($row, Category::faces);
+        $response = $this->migrateWithCategory($row, Category::faces);
+
+        if ($row->is_author) {
+            $response = $this->migrateWithCategory($row, Category::authors) && $response;
+        }
+
+        return $response;
 
 
     }
@@ -84,7 +85,7 @@ class MigratePeople extends Migration
                 : '',
             'email_to'         => '',
             'default_con'      => 0,
-            'published'        => $row->active && $row->has_page,
+            'published'        => $row->active,
             'checked_out'      => null,
             'checked_out_time' => null,
             'ordering'         => $row->sort ?? 0,
