@@ -8,6 +8,13 @@ use stdClass;
 
 class MigrateRelinkContacts extends Migration
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->cursor->disable();
+    }
+
     public function table(): string
     {
         return 'nn6g0_contact_details';
